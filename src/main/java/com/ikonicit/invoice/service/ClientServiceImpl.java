@@ -13,6 +13,9 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 @Service
 @RequiredArgsConstructor
 public class ClientServiceImpl implements ClientService{
@@ -169,6 +172,34 @@ public class ClientServiceImpl implements ClientService{
         // Step 8 — Save and return
         Client updated = clientRepository.save(client);
         return toResponse(updated);
+    }
+
+    // ─── GET ALL ─────────────────────────────────────────
+    @Override
+    public List<ClientResponseDTO> getAll() {
+        return clientRepository.findByIsActiveTrueOrderByCreatedAtDesc()
+                .stream()
+                .map(this::toResponse)
+                .collect(Collectors.toList());
+    }
+
+    // ─── GET BY ID ───────────────────────────────────────
+    @Override
+    public ClientResponseDTO getById(Long clientId) {
+        Client client = clientRepository.findById(clientId)
+                .orElseThrow(() -> new RuntimeException(
+                        "Client not found with id: " + clientId));
+        return toResponse(client);
+    }
+
+    // ─── DELETE (Soft Delete) ────────────────────────────
+    @Override
+    public void delete(Long clientId) {
+        Client client = clientRepository.findById(clientId)
+                .orElseThrow(() -> new RuntimeException(
+                        "Client not found with id: " + clientId));
+        client.setIsActive(false);
+        clientRepository.save(client);
     }
 
     private ClientResponseDTO toResponse(Client c) {
