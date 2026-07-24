@@ -31,6 +31,15 @@ public class ClientResponseDTO {
     private ClientAddressDTO deliveryAddress;
     private ClientSettingsDTO settings;
 
+    // add inside ClientResponseDTO
+    private String website;
+    private String phoneMobile;
+    private String phoneHome;
+    private String fax;
+
+    private ClientInvoiceSettingsDTO invoiceSettings;
+    private ClientRotInfoDTO rotInfo;
+
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

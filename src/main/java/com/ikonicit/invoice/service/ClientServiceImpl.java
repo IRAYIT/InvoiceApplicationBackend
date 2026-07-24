@@ -1,13 +1,7 @@
 package com.ikonicit.invoice.service;
 
-import com.ikonicit.invoice.dto.ClientAddressDTO;
-import com.ikonicit.invoice.dto.ClientRequestDTO;
-import com.ikonicit.invoice.dto.ClientResponseDTO;
-import com.ikonicit.invoice.dto.ClientSettingsDTO;
-import com.ikonicit.invoice.entity.Client;
-import com.ikonicit.invoice.entity.ClientAddress;
-import com.ikonicit.invoice.entity.ClientDeliveryAddress;
-import com.ikonicit.invoice.entity.ClientSettings;
+import com.ikonicit.invoice.dto.*;
+import com.ikonicit.invoice.entity.*;
 import com.ikonicit.invoice.repository.ClientRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -29,6 +23,10 @@ public class ClientServiceImpl implements ClientService{
         client.setClientType(req.getClientType() != null ? req.getClientType() : "company");
         client.setNumber(req.getNumber());
         client.setEmail(req.getEmail());
+        client.setWebsite(req.getWebsite());
+        client.setPhoneMobile(req.getPhoneMobile());
+        client.setPhoneHome(req.getPhoneHome());
+        client.setFax(req.getFax());
         client.setIsActive(true);
 
         // Step 4 — Company or Person fields
@@ -82,6 +80,28 @@ public class ClientServiceImpl implements ClientService{
         }
         client.setSettings(settings);
 
+        // Step 7b — Invoice settings (payment terms, language, currency, VAT, discount)
+        if (req.getInvoiceSettings() != null) {
+            ClientInvoiceSettings invSettings = new ClientInvoiceSettings();
+            invSettings.setClient(client);
+            invSettings.setPaymentTermsDays(req.getInvoiceSettings().getPaymentTermsDays());
+            invSettings.setInvoiceLanguage(req.getInvoiceSettings().getInvoiceLanguage());
+            invSettings.setCurrency(req.getInvoiceSettings().getCurrency());
+            invSettings.setDefaultVatPercent(req.getInvoiceSettings().getDefaultVatPercent());
+            invSettings.setDefaultDiscountPercent(req.getInvoiceSettings().getDefaultDiscountPercent());
+            client.setInvoiceSettings(invSettings);
+        }
+
+// Step 7c — ROT deduction info (Sweden only, person clients)
+        if (req.getRotInfo() != null) {
+            ClientRotInfo rot = new ClientRotInfo();
+            rot.setClient(client);
+            rot.setApartmentDesignation(req.getRotInfo().getApartmentDesignation());
+            rot.setPropertyDesignation(req.getRotInfo().getPropertyDesignation());
+            rot.setAssocCorpIdNo(req.getRotInfo().getAssocCorpIdNo());
+            client.setRotInfo(rot);
+        }
+
         // Step 8 — Save to DB
         Client saved = clientRepository.save(client);
 
@@ -125,6 +145,11 @@ public class ClientServiceImpl implements ClientService{
         if (req.getEmail() != null) client.setEmail(req.getEmail());
         if (req.getNumber() != null) client.setNumber(req.getNumber());
 
+        if (req.getWebsite() != null) client.setWebsite(req.getWebsite());
+        if (req.getPhoneMobile() != null) client.setPhoneMobile(req.getPhoneMobile());
+        if (req.getPhoneHome() != null) client.setPhoneHome(req.getPhoneHome());
+        if (req.getFax() != null) client.setFax(req.getFax());
+
         // Step 5 — Update billing address
         if (req.getAddress() != null) {
             ClientAddress address = client.getAddress() != null
@@ -167,6 +192,42 @@ public class ClientServiceImpl implements ClientService{
             if (req.getSettings().getEmailAttachPdf() != null)
                 settings.setEmailAttachPdf(req.getSettings().getEmailAttachPdf());
             client.setSettings(settings);
+        }
+
+        // Step 7b — Update invoice settings
+        if (req.getInvoiceSettings() != null) {
+            ClientInvoiceSettings invSettings = client.getInvoiceSettings() != null
+                    ? client.getInvoiceSettings()
+                    : new ClientInvoiceSettings();
+
+            invSettings.setClient(client);
+            if (req.getInvoiceSettings().getPaymentTermsDays() != null)
+                invSettings.setPaymentTermsDays(req.getInvoiceSettings().getPaymentTermsDays());
+            if (req.getInvoiceSettings().getInvoiceLanguage() != null)
+                invSettings.setInvoiceLanguage(req.getInvoiceSettings().getInvoiceLanguage());
+            if (req.getInvoiceSettings().getCurrency() != null)
+                invSettings.setCurrency(req.getInvoiceSettings().getCurrency());
+            if (req.getInvoiceSettings().getDefaultVatPercent() != null)
+                invSettings.setDefaultVatPercent(req.getInvoiceSettings().getDefaultVatPercent());
+            if (req.getInvoiceSettings().getDefaultDiscountPercent() != null)
+                invSettings.setDefaultDiscountPercent(req.getInvoiceSettings().getDefaultDiscountPercent());
+            client.setInvoiceSettings(invSettings);
+        }
+
+// Step 7c — Update ROT info
+        if (req.getRotInfo() != null) {
+            ClientRotInfo rot = client.getRotInfo() != null
+                    ? client.getRotInfo()
+                    : new ClientRotInfo();
+
+            rot.setClient(client);
+            if (req.getRotInfo().getApartmentDesignation() != null)
+                rot.setApartmentDesignation(req.getRotInfo().getApartmentDesignation());
+            if (req.getRotInfo().getPropertyDesignation() != null)
+                rot.setPropertyDesignation(req.getRotInfo().getPropertyDesignation());
+            if (req.getRotInfo().getAssocCorpIdNo() != null)
+                rot.setAssocCorpIdNo(req.getRotInfo().getAssocCorpIdNo());
+            client.setRotInfo(rot);
         }
 
         // Step 8 — Save and return
@@ -233,7 +294,23 @@ public class ClientServiceImpl implements ClientService{
             settingsDTO.setInvoiceDeliveryMethod(c.getSettings().getInvoiceDeliveryMethod());
             settingsDTO.setEmailAttachPdf(c.getSettings().getEmailAttachPdf());
         }
+        ClientInvoiceSettingsDTO invSettingsDTO = null;
+        if (c.getInvoiceSettings() != null) {
+            invSettingsDTO = new ClientInvoiceSettingsDTO();
+            invSettingsDTO.setPaymentTermsDays(c.getInvoiceSettings().getPaymentTermsDays());
+            invSettingsDTO.setInvoiceLanguage(c.getInvoiceSettings().getInvoiceLanguage());
+            invSettingsDTO.setCurrency(c.getInvoiceSettings().getCurrency());
+            invSettingsDTO.setDefaultVatPercent(c.getInvoiceSettings().getDefaultVatPercent());
+            invSettingsDTO.setDefaultDiscountPercent(c.getInvoiceSettings().getDefaultDiscountPercent());
+        }
 
+        ClientRotInfoDTO rotInfoDTO = null;
+        if (c.getRotInfo() != null) {
+            rotInfoDTO = new ClientRotInfoDTO();
+            rotInfoDTO.setApartmentDesignation(c.getRotInfo().getApartmentDesignation());
+            rotInfoDTO.setPropertyDesignation(c.getRotInfo().getPropertyDesignation());
+            rotInfoDTO.setAssocCorpIdNo(c.getRotInfo().getAssocCorpIdNo());
+        }
         return ClientResponseDTO.builder()
                 .id(c.getId())
                 .clientType(c.getClientType())
@@ -245,16 +322,20 @@ public class ClientServiceImpl implements ClientService{
                 .personalIdNo(c.getPersonalIdNo())
                 .email(c.getEmail())
                 .number(c.getNumber())
+                .website(c.getWebsite())
+                .phoneMobile(c.getPhoneMobile())
+                .phoneHome(c.getPhoneHome())
+                .fax(c.getFax())
                 .isActive(c.getIsActive())
                 .address(addressDTO)
                 .deliveryAddress(deliveryDTO)
                 .settings(settingsDTO)
+                .invoiceSettings(invSettingsDTO)
+                .rotInfo(rotInfoDTO)
                 .createdAt(c.getCreatedAt())
                 .updatedAt(c.getUpdatedAt())
                 .build();
+
     }
-
-
-
 }
 

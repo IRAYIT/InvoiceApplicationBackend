@@ -1,12 +1,12 @@
-package com.ikonicit.invoice.dto;
+    package com.ikonicit.invoice.dto;
 
-import lombok.Getter;
-import lombok.Setter;
+    import lombok.Getter;
+    import lombok.Setter;
 
-@Getter
-@Setter
-public class ClientSettingsDTO {
+    @Getter
+    @Setter
+    public class ClientSettingsDTO {
 
-    private String invoiceDeliveryMethod = "email";
-    private Boolean emailAttachPdf = false;
-}
+        private String invoiceDeliveryMethod = "email";
+        private Boolean emailAttachPdf = false;
+    }

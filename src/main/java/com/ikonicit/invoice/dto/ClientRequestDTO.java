@@ -26,4 +26,13 @@ public class ClientRequestDTO {
     private ClientAddressDTO address;
     private ClientAddressDTO deliveryAddress;
     private ClientSettingsDTO settings;
+
+    // add inside ClientRequestDTO
+    private String website;
+    private String phoneMobile;
+    private String phoneHome;
+    private String fax;
+
+    private ClientInvoiceSettingsDTO invoiceSettings;
+    private ClientRotInfoDTO rotInfo;
 }

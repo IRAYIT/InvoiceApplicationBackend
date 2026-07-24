@@ -77,6 +77,15 @@ public class Invoice {
     @OneToMany(mappedBy = "invoice", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<InvoiceItem> items = new ArrayList<>();
 
+    @OneToMany(mappedBy = "invoice", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Payment> payments = new ArrayList<>();
+
+    @Column(name = "amount_paid", precision = 12, scale = 2)
+    private BigDecimal amountPaid = BigDecimal.ZERO;   // running total, kept in sync
+
+    @Column(nullable = false)
+    private boolean paid = false;
+
     // ─── Soft Delete ──────────────────────────────────────
     @Column(name = "is_active")
     private Boolean isActive = true;
