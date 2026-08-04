@@ -58,17 +58,30 @@ public class InvoiceServiceImpl implements InvoiceService {
             item.setInvoice(invoice);
             item.setProductId(itemDTO.getProductId());
             item.setDescription(itemDTO.getDescription());
+            item.setExtraInfo(itemDTO.getExtraInfo());
             item.setQuantity(itemDTO.getQuantity());
             item.setUnit(itemDTO.getUnit());
             item.setUnitPrice(itemDTO.getUnitPrice());
             item.setTaxPercent(itemDTO.getTaxPercent());
 
-            // lineTotal = quantity * unitPrice
-            BigDecimal lineTotal = itemDTO.getQuantity()
-                    .multiply(itemDTO.getUnitPrice());
+            BigDecimal discountPercent = itemDTO.getDiscountPercent() != null
+                    ? itemDTO.getDiscountPercent()
+                    : BigDecimal.ZERO;
+            item.setDiscountPercent(discountPercent);
+
+            // gross = quantity * unitPrice
+            BigDecimal gross = itemDTO.getQuantity().multiply(itemDTO.getUnitPrice());
+
+            // discountAmount = gross * discountPercent / 100
+            BigDecimal discountAmount = gross
+                    .multiply(discountPercent)
+                    .divide(BigDecimal.valueOf(100));
+
+            // lineTotal = gross - discountAmount
+            BigDecimal lineTotal = gross.subtract(discountAmount);
             item.setLineTotal(lineTotal);
 
-            // taxAmount = lineTotal * taxPercent / 100
+            // taxAmount = lineTotal * taxPercent / 100 (tax applies after discount)
             BigDecimal taxAmount = lineTotal
                     .multiply(itemDTO.getTaxPercent())
                     .divide(BigDecimal.valueOf(100));
@@ -147,10 +160,12 @@ public class InvoiceServiceImpl implements InvoiceService {
                     itemDTO.setInvoiceId(invoice.getId());
                     itemDTO.setProductId(item.getProductId());
                     itemDTO.setDescription(item.getDescription());
+                    itemDTO.setExtraInfo(item.getExtraInfo());
                     itemDTO.setQuantity(item.getQuantity());
                     itemDTO.setUnit(item.getUnit());
                     itemDTO.setUnitPrice(item.getUnitPrice());
                     itemDTO.setTaxPercent(item.getTaxPercent());
+                    itemDTO.setDiscountPercent(item.getDiscountPercent());
                     itemDTO.setTaxAmount(item.getTaxAmount());
                     itemDTO.setLineTotal(item.getLineTotal());
                     return itemDTO;
@@ -221,17 +236,30 @@ public class InvoiceServiceImpl implements InvoiceService {
             item.setInvoice(invoice);
             item.setProductId(itemDTO.getProductId());
             item.setDescription(itemDTO.getDescription());
+            item.setExtraInfo(itemDTO.getExtraInfo());
             item.setQuantity(itemDTO.getQuantity());
             item.setUnit(itemDTO.getUnit());
             item.setUnitPrice(itemDTO.getUnitPrice());
             item.setTaxPercent(itemDTO.getTaxPercent());
 
-            // lineTotal = quantity * unitPrice
-            BigDecimal lineTotal = itemDTO.getQuantity()
-                    .multiply(itemDTO.getUnitPrice());
+            BigDecimal discountPercent = itemDTO.getDiscountPercent() != null
+                    ? itemDTO.getDiscountPercent()
+                    : BigDecimal.ZERO;
+            item.setDiscountPercent(discountPercent);
+
+            // gross = quantity * unitPrice
+            BigDecimal gross = itemDTO.getQuantity().multiply(itemDTO.getUnitPrice());
+
+            // discountAmount = gross * discountPercent / 100
+            BigDecimal discountAmount = gross
+                    .multiply(discountPercent)
+                    .divide(BigDecimal.valueOf(100));
+
+            // lineTotal = gross - discountAmount
+            BigDecimal lineTotal = gross.subtract(discountAmount);
             item.setLineTotal(lineTotal);
 
-            // taxAmount = lineTotal * taxPercent / 100
+            // taxAmount = lineTotal * taxPercent / 100 (tax applies after discount)
             BigDecimal taxAmount = lineTotal
                     .multiply(itemDTO.getTaxPercent())
                     .divide(BigDecimal.valueOf(100));

@@ -29,6 +29,9 @@ public class InvoiceItem {
     @Column(name = "description", nullable = false)
     private String description;         // Product name or custom text
 
+    @Column(name = "extra_info", columnDefinition = "TEXT")
+    private String extraInfo;
+
     @Column(name = "quantity", precision = 18, scale = 2)
     private BigDecimal quantity;        // e.g. 40 (hours)
 
@@ -41,9 +44,13 @@ public class InvoiceItem {
     @Column(name = "tax_percent", precision = 5, scale = 2)
     private BigDecimal taxPercent;      // e.g. 18.00 for GST 18%
 
+    // ─── NEW: Discount ────────────────────────────────────
+    @Column(name = "discount_percent", precision = 5, scale = 2)
+    private BigDecimal discountPercent; // e.g. 10.00 for 10% off
+
     @Column(name = "tax_amount", precision = 18, scale = 2)
     private BigDecimal taxAmount;       // Calculated: lineTotal * taxPercent / 100
 
     @Column(name = "line_total", precision = 18, scale = 2)
-    private BigDecimal lineTotal;       // quantity * unitPrice (before tax)
+    private BigDecimal lineTotal;       // (quantity * unitPrice) - discount, before tax
 }

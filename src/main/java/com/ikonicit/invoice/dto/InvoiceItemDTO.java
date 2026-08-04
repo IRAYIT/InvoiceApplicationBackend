@@ -14,7 +14,9 @@ public class InvoiceItemDTO {
     // If picked from product register
     private Long productId;
 
-    private String description;        // Product name or custom text
+    private String description; // Product name or custom text
+
+    private String extraInfo;
 
     private BigDecimal quantity;       // e.g. 40
 
@@ -24,7 +26,9 @@ public class InvoiceItemDTO {
 
     private BigDecimal taxPercent;     // e.g. 18.00
 
+    private BigDecimal discountPercent; // e.g. 10.00 for 10% off
+
     private BigDecimal taxAmount;      // Calculated
 
-    private BigDecimal lineTotal;      // quantity * unitPrice
+    private BigDecimal lineTotal;      // (quantity * unitPrice) - discount
 }
