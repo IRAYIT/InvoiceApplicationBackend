@@ -1,4 +1,4 @@
-package com.ikonicit.invoice.serviceImpl;
+package com.ikonicit.invoice.service;
 
 import com.ikonicit.invoice.dto.InvoiceDTO;
 import com.ikonicit.invoice.dto.InvoiceItemDTO;
@@ -288,5 +288,13 @@ public class InvoiceServiceImpl implements InvoiceService {
                 .orElseThrow(() -> new RuntimeException("Invoice not found"));
         invoice.setIsActive(false);
         invoiceRepository.save(invoice);
+    }
+
+    @Override
+    public List<InvoiceDTO> getInvoicesByClientId(Long clientId) {
+        return invoiceRepository.findByClient_IdAndIsActiveTrue(clientId)
+                .stream()
+                .map(this::mapToDTO)
+                .collect(Collectors.toList());
     }
 }

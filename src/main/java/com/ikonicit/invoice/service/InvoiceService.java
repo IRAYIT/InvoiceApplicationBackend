@@ -14,4 +14,6 @@ public interface InvoiceService {
     InvoiceDTO updateInvoice(Long id, InvoiceDTO invoiceDTO);
 
     void deleteInvoice(Long id);
+
+    List<InvoiceDTO> getInvoicesByClientId(Long clientId);
 }
