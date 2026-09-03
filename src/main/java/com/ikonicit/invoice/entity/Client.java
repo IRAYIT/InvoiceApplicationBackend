@@ -14,72 +14,71 @@ public class Client {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-//    @ManyToOne(fetch = FetchType.LAZY)
-//    @JoinColumn(name = "user_id", nullable = false)
-//    private User user;
-
-    // Radio button: "company" or "person"
     @Column(name = "client_type", nullable = false)
     private String clientType;
 
-    // Shown when clientType = "company"
     @Column(name = "company")
     private String company;
 
-    // Shown when clientType = "company"
     @Column(name = "company_reg_no")
-    private String companyRegNo;        // "Company reg. no."
+    private String companyRegNo;
 
-    // Shown when clientType = "company"
     @Column(name = "vat_no")
-    private String vatNo;               // "VAT no."
+    private String vatNo;
 
-    // Shown when clientType = "person"
     @Column(name = "first_name")
-    private String firstName;           // "First name"
+    private String firstName;
 
-    // Shown when clientType = "person"
     @Column(name = "last_name")
-    private String lastName;            // "Last name"
+    private String lastName;
 
-    // Shown when clientType = "person"
     @Column(name = "personal_id_no")
-    private String personalIdNo;        // "Personal id no."
+    private String personalIdNo;
 
-    // Shown for both company and person
     @Column(name = "email")
-    private String email;               // "Email"
+    private String email;
 
-    // ─── Auto-generated client number ────────────────────
-    // Visible in list as "#" column (e.g. 2)
+    // ─── NEW: Contact information section ────────────────
+    @Column(name = "website")
+    private String website;
+
+    @Column(name = "phone_mobile")
+    private String phoneMobile;
+
+    @Column(name = "phone_home")
+    private String phoneHome;
+
+    @Column(name = "fax")
+    private String fax;
+
     @Column(name = "number")
     private String number;
 
-    // ─── Soft Delete ─────────────────────────────────────
     @Column(name = "is_active")
     private Boolean isActive = true;
 
-    // ─── Timestamps ──────────────────────────────────────
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt = LocalDateTime.now();
 
-    // ─── Billing Address Tab ─────────────────────────────
-    // C/O, Address, Zip code, City, Country
     @OneToOne(mappedBy = "client", cascade = CascadeType.ALL, orphanRemoval = true)
     private ClientAddress address;
 
-    // ─── Delivery Address Tab ────────────────────────────
-    // Same fields as billing address
     @OneToOne(mappedBy = "client", cascade = CascadeType.ALL, orphanRemoval = true)
     private ClientDeliveryAddress deliveryAddress;
 
-    // ─── Send Invoices Settings ──────────────────────────
-    // "Send invoices by" + "Always attach PDF"
     @OneToOne(mappedBy = "client", cascade = CascadeType.ALL, orphanRemoval = true)
     private ClientSettings settings;
+
+    // ─── NEW: "New invoice settings" section ─────────────
+    @OneToOne(mappedBy = "client", cascade = CascadeType.ALL, orphanRemoval = true)
+    private ClientInvoiceSettings invoiceSettings;
+
+    // ─── NEW: "Extra field for ROT deduction" (Sweden only) ─
+    @OneToOne(mappedBy = "client", cascade = CascadeType.ALL, orphanRemoval = true)
+    private ClientRotInfo rotInfo;
 
     @PreUpdate
     public void preUpdate() {
