@@ -30,5 +30,7 @@ public class InvoiceItemDTO {
 
     private BigDecimal taxAmount;      // Calculated
 
-    private BigDecimal lineTotal;      // (quantity * unitPrice) - discount
+    private BigDecimal lineTotal; // (quantity * unitPrice) - discount
+
+    private String rowType;
 }

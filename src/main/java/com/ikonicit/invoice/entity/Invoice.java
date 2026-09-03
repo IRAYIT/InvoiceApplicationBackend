@@ -80,6 +80,30 @@ public class Invoice {
     @OneToMany(mappedBy = "invoice", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Payment> payments = new ArrayList<>();
 
+    // ─── "More options (ROT/RUT etc)" extra fields ─────────
+    // One row per selected option from InvoiceForm's dropdown (e.g.
+    // "Add the buyers VAT number", "Add reverse charge"). Previously
+    // this data was built on the frontend and sent in the payload but
+    // had nowhere to land on the backend, so it was silently dropped.
+    @OneToMany(mappedBy = "invoice", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<InvoiceExtraField> extraFields = new ArrayList<>();
+
+    // "Add tax deduction for ROT / RUT / Green tech" — a single applied
+    // percentage rather than a list, so it lives directly on the invoice
+    // instead of as its own entity.
+    @Column(name = "tax_deduction_applied")
+    private Boolean taxDeductionApplied = false;
+
+    @Column(name = "tax_deduction_percent")
+    private Integer taxDeductionPercent;
+
+    // ─── History ──────────────────────────────────────────
+    // "Created" / "Marked as sent" / "Paid" / "Overpaid" events, shown
+    // in the ViewInvoice sidebar. Newest first, matching the reference UI.
+    @OneToMany(mappedBy = "invoice", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("timestamp DESC")
+    private List<InvoiceHistoryEvent> historyEvents = new ArrayList<>();
+
     @Column(name = "amount_paid", precision = 12, scale = 2)
     private BigDecimal amountPaid = BigDecimal.ZERO;   // running total, kept in sync
 

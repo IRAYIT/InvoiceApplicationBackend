@@ -53,4 +53,7 @@ public class InvoiceItem {
 
     @Column(name = "line_total", precision = 18, scale = 2)
     private BigDecimal lineTotal;       // (quantity * unitPrice) - discount, before tax
+
+    @Column(name = "row_type")
+    private String rowType = "product";
 }
