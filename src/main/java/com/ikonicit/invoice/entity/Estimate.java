@@ -59,6 +59,9 @@ public class Estimate {
     @Column(name = "notes", columnDefinition = "TEXT")
     private String notes;
 
+    @Column(name = "currency", nullable = false)
+    private String currency = "SEK";
+
     // When estimate was sent to client
     @Column(name = "sent_at")
     private LocalDateTime sentAt;

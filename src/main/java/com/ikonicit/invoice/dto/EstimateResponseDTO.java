@@ -32,6 +32,8 @@ public class EstimateResponseDTO {
     private BigDecimal vatAmount;     // total VAT
     private BigDecimal total;         // subtotal + vatAmount
 
+    private String currency;
+
     // Notes
     private String notes;
 

@@ -22,4 +22,6 @@ public class EstimateRequestDTO {
 
     // Line items
     private List<EstimateItemRequestDTO> items;
+
+    private String currency; // optional on create — defaults to "SEK" if omitted
 }

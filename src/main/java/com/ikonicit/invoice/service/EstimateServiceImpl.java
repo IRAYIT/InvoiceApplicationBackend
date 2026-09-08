@@ -20,6 +20,7 @@ public class EstimateServiceImpl implements EstimateService {
     private final EstimateRepository estimateRepo;
     private final ClientRepository clientRepo;
     private final ProductRepository productRepo;
+    private final CurrencyRateService currencyRateService;
 
     // ─── CREATE ──────────────────────────────────────
     @Override
@@ -94,6 +95,13 @@ public class EstimateServiceImpl implements EstimateService {
         estimate.setVatAmount(totalVat);
         estimate.setTotal(subtotal.add(totalVat));
 
+        String currency = req.getCurrency() != null ? req.getCurrency() : "SEK";
+        if (!currencyRateService.isSupported(currency)) {
+            throw new RuntimeException("Unsupported currency: " + currency
+                    + ". Supported currencies: " + CurrencyRateService.SUPPORTED_CURRENCIES);
+        }
+        estimate.setCurrency(currency);
+
         // Step 6 — Save and Return
         Estimate saved = estimateRepo.save(estimate);
         return toResponse(saved);
@@ -112,6 +120,14 @@ public class EstimateServiceImpl implements EstimateService {
     @Override
     public List<EstimateResponseDTO> getAll() {
         return estimateRepo.findAllActiveEstimates()
+                .stream()
+                .map(this::toResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<EstimateResponseDTO> getEstimatesByClientId(Long clientId) {
+        return estimateRepo.findByClient_IdAndActiveTrue(clientId)
                 .stream()
                 .map(this::toResponse)
                 .collect(Collectors.toList());
@@ -158,6 +174,7 @@ public class EstimateServiceImpl implements EstimateService {
                 .convertedInvoiceId(e.getConvertedInvoiceId())
                 .isActive(e.isActive())
                 .items(itemDTOs)
+                .currency(e.getCurrency())
                 .createdAt(e.getCreatedAt())
                 .updatedAt(e.getUpdatedAt())
                 .build();
@@ -270,4 +287,106 @@ public class EstimateServiceImpl implements EstimateService {
         estimate.setActive(false);
         estimateRepo.save(estimate);
     }
+
+    @Override
+    @Transactional
+    public EstimateResponseDTO updateCurrency(Long id, String newCurrency) {
+
+        Estimate estimate = estimateRepo.findById(id)
+                .orElseThrow(() -> new RuntimeException(
+                        "Estimate not found with id: " + id));
+
+        if ("APPROVED".equals(estimate.getStatus())
+                || "CONVERTED".equals(estimate.getStatus())) {
+            throw new RuntimeException(
+                    "Cannot change currency on an estimate with status: "
+                            + estimate.getStatus());
+        }
+
+        if (!currencyRateService.isSupported(newCurrency)) {
+            throw new RuntimeException("Unsupported currency: " + newCurrency
+                    + ". Supported currencies: " + CurrencyRateService.SUPPORTED_CURRENCIES);
+        }
+
+        String oldCurrency = estimate.getCurrency();
+
+        // No-op if it's already in that currency
+        if (oldCurrency.equals(newCurrency)) {
+            return toResponse(estimate);
+        }
+
+        // Convert every line item
+        for (EstimateItem item : estimate.getItems()) {
+            BigDecimal newUnitPrice = currencyRateService.convert(
+                    item.getUnitPrice(), oldCurrency, newCurrency);
+            item.setUnitPrice(newUnitPrice);
+
+            BigDecimal newLineTotal = item.getQuantity()
+                    .multiply(newUnitPrice)
+                    .setScale(2, RoundingMode.HALF_UP);
+            item.setLineTotal(newLineTotal);
+
+            BigDecimal newTaxAmount = newLineTotal
+                    .multiply(item.getTaxPercent())
+                    .divide(new BigDecimal("100"), 2, RoundingMode.HALF_UP);
+            item.setTaxAmount(newTaxAmount);
+        }
+
+        // Recompute totals from the converted items (avoids compounding
+        // rounding error from converting subtotal/vat/total separately)
+        BigDecimal subtotal = BigDecimal.ZERO;
+        BigDecimal totalVat = BigDecimal.ZERO;
+        for (EstimateItem item : estimate.getItems()) {
+            subtotal = subtotal.add(item.getLineTotal());
+            totalVat = totalVat.add(item.getTaxAmount());
+        }
+
+        estimate.setSubtotal(subtotal);
+        estimate.setVatAmount(totalVat);
+        estimate.setTotal(subtotal.add(totalVat));
+        estimate.setCurrency(newCurrency);
+
+        return toResponse(estimateRepo.save(estimate));
+    }
+    @Override
+    @Transactional
+    public EstimateResponseDTO approve(Long id) {
+
+        Estimate estimate = estimateRepo.findById(id)
+                .orElseThrow(() -> new RuntimeException(
+                        "Estimate not found with id: " + id));
+
+        estimate.setStatus("APPROVED");
+        estimate.setApprovedAt(java.time.LocalDateTime.now());
+
+        return toResponse(estimateRepo.save(estimate));
+    }
+
+
+    @Override
+    @Transactional
+    public EstimateResponseDTO reject(Long id) {
+
+        Estimate estimate = estimateRepo.findById(id)
+                .orElseThrow(() -> new RuntimeException(
+                        "Estimate not found with id: " + id));
+
+        estimate.setStatus("REJECTED");
+        estimate.setRejectedAt(java.time.LocalDateTime.now());
+
+        return toResponse(estimateRepo.save(estimate));
+    }
+    @Override
+    @Transactional
+    public EstimateResponseDTO convertToInvoice(Long id) {
+
+        Estimate estimate = estimateRepo.findById(id)
+                .orElseThrow(() -> new RuntimeException(
+                        "Estimate not found with id: " + id));
+
+        estimate.setStatus("COMPLETED");
+
+        return toResponse(estimateRepo.save(estimate));
+    }
+
 }

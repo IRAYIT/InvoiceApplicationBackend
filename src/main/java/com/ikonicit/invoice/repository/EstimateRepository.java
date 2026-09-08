@@ -14,4 +14,6 @@ public interface EstimateRepository extends JpaRepository<Estimate, Long> {
     // Auto-generate estimate number
     @Query("SELECT COUNT(e) FROM Estimate e")
     Long countAllEstimates();
+
+    List<Estimate> findByClient_IdAndActiveTrue(Long clientId);
 }

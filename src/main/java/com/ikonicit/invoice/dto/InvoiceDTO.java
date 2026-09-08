@@ -51,4 +51,12 @@ public class InvoiceDTO {
 
     // All product rows of this invoice
     private List<InvoiceItemDTO> items = new ArrayList<>();
+
+    // Extra invoice fields
+    private List<InvoiceExtraFieldDTO> extraFields = new ArrayList<>();
+
+    // Tax deduction
+    private Boolean taxDeductionApplied;
+
+    private BigDecimal taxDeductionPercent;
 }

@@ -30,6 +30,13 @@ public class EstimateController {
                 estimateService.getAll());
     }
 
+    @GetMapping("/client/{clientId}")
+    public ResponseEntity<List<EstimateResponseDTO>> getEstimatesByClientId(
+            @PathVariable Long clientId) {
+        return ResponseEntity.ok(
+                estimateService.getEstimatesByClientId(clientId));
+    }
+
     // ─── GET BY ID ───────────────────────────────────
     @GetMapping("/{id}")
     public ResponseEntity<EstimateResponseDTO> getById(
@@ -56,5 +63,34 @@ public class EstimateController {
                 "Estimate deleted successfully.");
     }
 
+    // ─── PATCH — Update currency ─────────────────────
+    @PatchMapping("/{id}/currency")
+    public ResponseEntity<EstimateResponseDTO> updateCurrency(
+            @PathVariable Long id,
+            @RequestParam String currency) {
+        return ResponseEntity.ok(
+                estimateService.updateCurrency(id, currency));
+    }
+
+    @PatchMapping("/{id}/approve")
+    public ResponseEntity<EstimateResponseDTO> approve(
+            @PathVariable Long id) {
+        return ResponseEntity.ok(
+                estimateService.approve(id));
+    }
+
+    @PatchMapping("/{id}/reject")
+    public ResponseEntity<EstimateResponseDTO> reject(
+            @PathVariable Long id) {
+        return ResponseEntity.ok(
+                estimateService.reject(id));
+    }
+    // ─── POST — Mark Estimate as Completed ─────────────
+    @PostMapping("/{id}/convert-to-invoice")
+    public ResponseEntity<EstimateResponseDTO> convertToInvoice(
+            @PathVariable Long id) {
+        return ResponseEntity.ok(
+                estimateService.convertToInvoice(id));
+    }
 
 }
